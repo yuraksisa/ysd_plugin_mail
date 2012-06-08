@@ -77,7 +77,7 @@ SCRIPT
     
       app = context[:app]
     
-      app.render_menu_option(:text => "#{app.t.social_menu.messages}", :link => "#{app.settings.mail_prefix}/messages-reader")
+      app.render_menu_option(:text => "#{app.t.social_menu.messages}", :link => "/mail/messages-reader")
     
     end
       
