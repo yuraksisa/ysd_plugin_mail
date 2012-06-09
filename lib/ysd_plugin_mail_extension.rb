@@ -66,20 +66,37 @@ SCRIPT
     
     end
     
-    # ---------------- Profile Hooks -------------------------
     
-    # -------------------------------------------------
-    # huasi_menu
-    # -------------------------------------------------
-    # Defines an option in the menu
-    # -------------------------------------------------    
-    def huasi_menu(context={})  
+    # ========= Page Building ============
     
-      app = context[:app]
-    
-      app.render_menu_option(:text => "#{app.t.social_menu.messages}", :link => "/mail/messages-reader")
-    
+    #
+    # It gets the style sheets defined in the module
+    #
+    # @param [Context]
+    #
+    # @return [Array]
+    #   An array which contains the css resources used by the module
+    #
+    def page_style(context={})
+      ['/mail/css/mail.css']     
     end
+    
+    #
+    # It gets the scripts used by the module
+    #
+    # @param [Context]
+    #
+    # @return [Array]
+    #   An array which contains the css resources used by the module
+    #
+    def page_script(context={})
+    
+      ['/js/jquery.placeholder.js',
+       '/js/ysd.forms.js',
+       '/js/ysd.events.js',
+       '/js/ysd.back.js']   
+    
+    end            
       
     # ========= Routes ===================
     
