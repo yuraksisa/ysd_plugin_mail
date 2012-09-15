@@ -1,0 +1,958 @@
+<div id="messages_container">
+
+  <div id="message_container_button_bar">
+    <div class="left-bar">
+      <div class="form-button" id="reload_button"><%= t.message.reload %></div>
+    </div>
+    <div class="right-bar">
+      <div id="messages_summary_page" class="messages-summary"></div>
+      <div class="form-button" id="previous_page_button">&lt;</div>
+      <div class="form-button" id="next_page_button">&gt;</div>
+    </div>
+  </div>
+
+  <table id="messages_list" class="table" style="dislay:none">
+    <thead>
+      <tr>
+        <th class="table-header-title" scope="col"><%= t.message_list.from %></th>
+        <th class="table-header-title" scope="col"><%= t.message_list.subject %></th>
+        <th class="table-header-title" scope="col"><%= t.message_list.date %></th>
+        <th class="table-header-title" scope="col"></th>
+      </tr>
+    </thead>
+    <tbody id="messages_tbody" class="table-tbody">
+    </tbody>
+  </table>
+  <div id="messages_info" style="display:none">
+    <%= t.message_list.no_messages %>
+  </div>
+</div>
+
+<div id="message_detail" style="display:none">
+
+  <div id="message_detail_button_bar">
+    <div class="left-bar">
+      <div class="form-button" id="message_list_button"><%= t.message.come_back %></div>
+    </div>
+    <div class="right-bar">
+      <div id="messages_summary_element" class="messages-summary"></div>
+      <div class="form-button" id="previous_message_button">&lt;</div>
+      <div class="form-button" id="next_message_button">&gt;</div> 
+    </div>
+  </div>
+  
+  <div id="message_detail_message">
+  </div>
+ 
+</div>
+
+<script type="text/tmpl" id="message_row_script">
+
+    <tr class="table-row element-navigation-detail" rel="<%%= index %>" id="message_row_<%%=index%>">
+      <td class="mail-sender table-cell<%% if (!message.read && message.receiver_id == message.mailbox_id) { %> highlighted-row<%% } %>">
+        <%%=(message.conversation_number && message.conversation_number>0)?message.sender_id+', <span style="font-weight:normal"><%=t.message.user%> ('+message.conversation_number+')</span>':message.sender_id%>
+      </td>
+      <td class="mail-subject table-cell<%% if (!message.read && message.receiver_id == message.mailbox_id) { %> highlighted-row<%% } %>"><%%=message.subject%><span class="mail-message">&nbsp;<%%= message.message.replace(/\s+/g,' ')%></span></td>
+      <td class="mail-received-date table-cell<%% if (!message.read && message.receiver_id == message.mailbox_id) { %> highlighted-row<%% } %>"><%%= messagesModel.format_message_date(message.received_date) %></td>
+      <td class="table-cell<%% if (!message.read && message.receiver_id == message.mailbox_id) { %> highlighted-row<%% } %>"><%%= (message.reply_by_id || message.mailbox_id != message.receiver_id)?'<img src="/mail/img/replied_mail.png" title="replied"/>':'<img src="/mail/img/no_replied_mail.png" title="not replied"/>'%></td>
+    </tr>
+    
+</script>
+
+<script type="text/tmpl" id="message_detail_script">
+   
+  <div id="message_detail_header"> 
+    <div>
+       <span class="message_detail_subject"><%%= subject %></span>
+    </div>  
+  </div>
+   
+  <!-- The conversation -->
+    
+  <div id="message_detail_conversation">
+    <div id="message_detail_conversation_messages">
+    </div>   
+  </div>   
+  
+  <!-- Response -->
+        
+  <div id="message_response">
+  
+    <form id="reply_message_form" name="reply_message_form" action="/mail/message">
+  
+      <div>
+        <textarea id="message" name="message" rows="5" placeholder="<%= t.reply_message_form.reply%>" class="texteditor"></textarea>
+      </div>
+      <p style="text-align:right"> <span id="message_length"></span> <%= t.available_chars %> </p>
+      <div class="formrow-botonera">
+       <input type="submit" id="send" name="send" value="<%= t.reply_message_form.reply_button %>" class="reply-button"/>   
+      </div>  
+    
+      <input type="hidden" name="subject" value="<%%=subject %>"/> 
+      <input type="hidden" name="receiver[address]" value="<%%= mailbox_id==receiver_id?sender_id:receiver_id %>"/>
+      <input type="hidden" name="sender[address]" value="<%%= mailbox_id==receiver_id?receiver_id:sender_id %>"/>
+      <input type="hidden" name="reply[id]" value="<%%= mailbox_id==receiver_id?id:reply_id %>"/>
+         
+    </form> 
+    
+  </div>
+  
+  <div id="message_detail_footer">
+  </div>
+  
+</script>
+
+<script type="text/tmpl" id="conversation_item_script">
+
+  <div class="conversation_item <%% if (receiver_id == mailbox_id){%>conversation_item_own<%% } else {%> conversation_item_other<%% } %>">
+    <div class="conversation_item_header">
+        <span class="message_detail_sender"><%%= messagesModel.format_sender_url(sender_id)%></span> 
+        <span class="message_detail_date"><%%= messagesModel.format_message_date_time(received_date) %></span>
+    </div>
+    <div class="conversation_item_body">
+        <%%= messagesModel.format_message(message) %>
+    </div>
+    <div class="conversation_item_footer">
+    </div>
+  </div>
+
+</script>
+
+
+<script type="text/javascript">
+
+  replyMessageModel = { // Model
+  	
+  	state : 'initial',
+  	response_data : null,
+  	response_status : null,
+  	events : new YSD.EventTarget(),
+  	
+  	change_state : function(action) {
+  		
+  		switch (action) {
+  			
+  		  case 'message_send_success' :
+  		    
+  		    this.state = 'process_ok';
+  		    break;
+  		    
+  		  case 'message_send_error' :
+  		    this.state = 'process_error';
+  		    break;	
+  			
+  		}
+  		
+  		replyMessageView.state_changed(this.state);
+  		
+  		if (this.state == 'process_ok')
+  		{
+  		  this.events.fireEvent({type:'message_replied', source:replyMessageModel});	
+  		}
+  		
+  	},
+  	
+  	sendMessage : function(message) {
+  		
+  		delete message['send'];
+  		
+  		var json_request = encodeURIComponent(JSON.stringify(message));
+  		
+  		$.ajax( {
+  			type   : 'POST',
+  			url : document.forms['reply_message_form'].action,
+  			data   : json_request,
+  			data_type : 'application/json; charset=utf-8',  			
+  			content_type : 'json',
+  			success : function(data, textStatus, jqXHR) {
+  			  replyMessageModel.response_data = data;
+  			  replyMessageModel.change_state('message_send_success');	
+  			},
+  			error: function(data, textStatus, jqXHR) {
+  			  replyMessageModel.response_status = textStatus;
+  			  replyMessageModel.change_state('message_send_error');
+  			}
+  		});
+  		
+  	}
+  	
+  };
+  
+  replyMessageController = { // Controller
+  	
+  	sendMessage : function(message) { /* Send message action */
+  		
+  	  replyMessageModel.sendMessage(message);
+  	  	
+  	},
+  	
+  	processDone : function() { /* Reply sent */
+  	
+  	  document.getElementById('message').value = '';
+  	  document.getElementById('message').focus();
+  	  document.getElementById('message').blur();
+  	}
+  	
+  };
+  
+  replyMessageView = { // View
+  	
+  	init : function() { /* Initialization */
+  		
+  	  // configure the validations
+  	  $('#reply_message_form').validate( {
+  	    
+  	     debug : true,
+  	     
+  	     submitHandler : function(form) {
+  	     	
+  	     	replyMessageController.sendMessage( $(form).formParams(false) );
+  	     	
+  	     },
+  	     
+  	     rules : {
+  	       
+  	       'message' : {
+  	       	  required : true
+  	       }
+  	     	
+  	     },
+  	     
+  	     messages : {
+  	     	  	     	
+  	       'message' : {
+  	       	 required : "<%= t.message_form.validation.message_required %>"
+  	       }	
+  	     	
+  	     	
+  	     }
+  	  
+  	   }
+  	  );
+  	  
+  	  // configure place holders         
+      $('input[placeholder],textarea[placeholder]').placeholder();
+
+  	  // configure the message max size 	  
+  	  YsdForms.limit_text_area_content_size (document.getElementById('message'),
+  	                                         1024,
+  	                                         function (content_remain) {
+  	                                         	document.getElementById('message_length').innerHTML = '<strong>' + content_remain + '</strong>';
+  	                                         });      	
+  	  
+  	    	  
+  		  		
+  	},
+  	
+  	state_changed : function (state) { /* State changed */
+  	  
+  	  switch (state) {
+  	  	
+  	    case 'process_ok':
+  	    
+  	      $('<div title="<%= t.message_form.process_ok_title %>"><%= t.message_form.process_ok_description %></div>').dialog({ height: 160, modal: true, 
+  	         buttons : {
+  	           
+  	           Ok : function() {
+  	           	 $(this).dialog("close");
+  	           }
+  	         	
+  	         },
+  	         
+  	         close : function(event, ui){ /* When dialog is closed */
+
+  	           replyMessageController.processDone();
+  	         	
+  	         }	
+
+  	          });
+  	    
+  	      break;
+  	      
+  	    case 'process_error':
+  	    
+  	      $('<div title="<%= t.message_form.process_error_title %>"><%= t.message_form.process_error_description %></div>').dialog({height: 160, modal: true,
+  	        buttons : {
+  	          Ok : function() {
+  	          	$(this).dialog("close");
+  	          }
+  	        }
+  	        	});
+  	    
+  	      break;
+  	  	
+  	  }
+  	}
+  	
+  }
+
+
+</script>
+
+
+<script type="text/javascript">
+
+  messagesModel = { /* The model */
+  	  	
+  	state : 'initial',
+  	
+  	messages : [], /* The messages shown */
+  	
+	summary : null, /* The query information */
+  	  	
+  	message_index : -1, /* The current message in message detail */
+  	
+  	conversation : null, /* It holds the current conversation */
+  	
+  	navigator : {
+      
+      hash_page_expression : /^(\w+)\/page\/(\d+)$/,
+      hash_conversation_expression : /^(\w+)\/(\d+)$/,
+  	  page : 1, /* The messages page shown */
+  	  folder : 'in', /* The folder */
+      element_id : null, /* The current element */
+      page_size : <%= options.mail_page_size %>, /* The messages shown in a page */
+      
+      navigate : function () { /* Navigate */
+      	
+      	var old_folder = this.folder;
+      	var old_page = this.page;
+      	var old_element_id = this.element_id;
+      	
+      	var the_hash = window.location.hash.substring(window.location.hash.indexOf('#')+1);
+      	
+  	    var parse_expression=the_hash.match(this.hash_page_expression);
+  	    
+  	    if (parse_expression) {
+  	      this.folder = parse_expression[1];
+  	      this.page = new Number(parse_expression[2]);
+  	      this.element_id = null;
+  	    }
+  	    else
+  	    {
+  	      parse_expression=the_hash.match(this.hash_conversation_expression);
+  	      if (parse_expression) {
+  	        this.folder = parse_expression[1];
+  	        this.element_id = parse_expression[2];
+  	      }	
+  	    }
+  	    
+  	    if (old_folder != this.folder || old_page != this.page || old_element_id != this.element_id) {
+          // Retrieve the messages
+          messagesModel.retrieve_messages();
+  	    }
+	      	    	
+      },
+      
+      isFirstPage : function() { /* Check if we are in the first page */
+      	return this.page == 1;
+      },
+      
+      isLastPage : function() { /* Check if we are in the last page */
+        return (this.page_size * this.page) >=  messagesModel.summary.total;
+      },
+ 	  
+ 	  isPageMode : function() {
+ 	  	return this.element_id == null;
+ 	  },
+ 	  
+ 	  isElementMode : function() {
+ 	  	return this.element_id != null;
+ 	  },
+ 	  
+ 	  back_to_page : function() {
+ 	    this.page_loaded();	
+ 	  },
+ 	  
+ 	  page_loaded : function() {
+ 	    this.element_id = null;	
+ 	    this.update_hash();
+ 	  },
+ 	  
+ 	  element_loaded : function(id) {
+ 	  	this.element_id = id;
+ 	  	this.update_hash();
+ 	  },
+ 	  
+ 	  getHash : function() { /* Get the hash */
+ 	    return (this.element_id==null)?(this.folder+'/page/'+this.page):(this.folder+'/'+this.element_id); 	
+ 	  },
+ 	  
+ 	  getPageNavigationQuery : function() {
+ 	  	return this.folder + '/page/' + this.page;
+ 	  },
+ 	  
+ 	  summary_page_message : function() { /* Get the summary block message */
+ 	  	return Math.max(((messagesModel.navigator.page-1) * messagesModel.navigator.page_size), 1)+ ' - ' + Math.min(((messagesModel.navigator.page) * messagesModel.navigator.page_size), messagesModel.summary.total) + ' de ' + messagesModel.summary.total;
+ 	  },
+ 	  
+ 	  summary_element_message : function() { /* Get the element block message */
+ 	  	return (((messagesModel.navigator.page-1) * messagesModel.navigator.page_size) + messagesModel.message_index + 1) + ' de ' + messagesModel.summary.total;
+ 	  },
+ 	  
+ 	  update_hash : function() {
+ 	  
+ 	    var new_hash = this.getHash();
+ 	    if (new_hash != window.location.hash.substring(window.location.hash.indexOf('#')))
+ 	    {
+ 	  	  window.location.hash = this.getHash();
+ 	    }
+ 	  }
+ 	  
+  	},
+  	
+  	init : function() { /* Model initialization */
+  	
+  	  // Configure the event to respond when the message is replied
+  	  replyMessageModel.events.addEventListener('message_replied', function(event) { messagesModel.update_conversation(event); });
+  	  
+  	  this.retrieve_messages();
+      	 	    	
+  	},
+  	  	
+  	currentMessage : function() { /* Get the current message (is shown in detail div) */
+  	
+  	  if (this.message_index<0 || this.message_index >= this.messages.length) {
+  	    return null;	
+  	  }
+     	
+  	  return this.messages[this.message_index];
+  		
+  	},
+  	
+  	setMessageIndex : function(index) { /* Configure the message index of the current message */
+  	
+  	  this.message_index = index.valueOf();
+  	  this.mark_message_as_read();
+  		
+  	},
+  	
+  	nextMessage : function() { /* Next message */
+  	
+  	  if (this.message_index == this.messages.length-1 && !this.navigator.isLastPage()) {
+  	  	this.navigator.page++;
+  	  	this.retrieve_messages(this.navigator.getPageNavigationQuery());
+  	  }
+  	  else if (this.message_index < this.messages.length-1) {
+  	  	this.message_index++;
+  	  	this.mark_message_as_read();
+  	  	messagesView.show_message_detail();
+  	  }
+  	    	
+  	},
+  	
+  	previousMessage : function() { /* Previous message */
+  	
+  	  if (this.message_index == 0 && !this.navigator.isFirstPage()) {
+  	  	this.navigator.page--;
+  	  	this.retrieve_messages(this.navigator.getPageNavigationQuery());
+  	  }
+      else if (this.message_index > 0) {
+  	    this.message_index--;
+  	    this.mark_message_as_read();
+  	    messagesView.show_message_detail();	
+  	  }
+  	  	
+  	},
+  	
+  	previousPage : function() { /* Previous page */
+  	
+  	  if (!this.navigator.isFirstPage()) {
+  	  
+  	    this.navigator.page--;
+  	    this.retrieve_messages();
+  	  	
+  	  }
+  	
+  	},
+  	
+  	nextPage : function() { /* Next page */
+  	
+  	  if (!this.navigator.isLastPage()) {
+  	  
+  	    this.navigator.page++;
+  	    this.retrieve_messages();
+  	  	
+  	  }
+  	
+  	},
+  	
+  	reload : function() { /* Reload page */
+  	
+  	  this.retrieve_messages();
+  	
+  	},
+  	
+  	change_state : function(action) { /* Controls when the state changes */
+  		
+  		switch (action) {
+  		
+  		  case 'messages_received_success':
+  		    
+  		    if (this.navigator.element_id != null) { /* If messages were retrieved due to element navigation */
+  		      this.message_index = (this.message_index == (this.navigator.page_size - 1))?0:this.navigator.page_size-1; 
+  		      messagesView.show_message_detail();
+  		    }
+            else
+            {
+              this.navigator.page_loaded();	
+            }
+            
+ 		    this.state = 'messages_received';
+  		    break;	
+  		    
+  		  case 'messages_received_error':
+  		    this.state = 'error_receiving_messages';  
+  			break;
+  		
+  		  case 'conversation_retrieved_success':
+  		    this.state = 'conversation_retrieved';
+  		    this.navigator.element_loaded(this.conversation.conversation.id);
+  		    break;
+  		    
+  		  case 'conversation_retrieved_error':
+  		    this.state = 'error_retrieving_conversation';
+  		    break;
+  		    
+  		  case 'message_marked_as_read_success':
+  		    
+  		    this.state = 'message_marked_as_read';
+  		    break;
+  		    
+  		  case 'message_marked_as_read_error':
+  		  
+  		    this.state = 'error_marking_message_as_read';
+  		    break;
+  			
+  		}
+  		
+  		
+  		messagesView.state_changed(this.state);
+  		
+  	},
+  	
+  	retrieve_messages : function(query) { /* Retrieve the messages */
+  		
+  		if (query == null) {
+  		  query = messagesModel.navigator.getHash();	
+  		}
+  		
+        var request_url = '/mail/messages/' + query
+  		        
+  		$.ajax({
+  			    type : 'GET',
+  		        url  : request_url,
+  		        contentType : 'application/json; charset=utf-8', /* data sent */ 
+  		        dataType : 'json',
+  		        cache: false,
+  		        success: function(data, statusText, jqXHR) {
+  		        	
+  		        	messagesModel.messages = data.data;
+  		        	messagesModel.summary = data.summary;
+  		        	messagesModel.change_state('messages_received_success');
+  		        	
+  		        },
+  		        error: function(data, statusText,jqXHR) {
+  		        	
+  		        	messagesModel.change_state('message_received_error');
+  		        	
+  		        }    		
+  	           });
+  	},
+  	
+  	retrieve_conversation : function() { /* Retrieve the full conversation */
+  		
+  	   $.ajax({
+  	   	       type: 'GET',
+  	   	       url : '/mail/conversation/'+messagesModel.messages[messagesModel.message_index].conversation_id,
+  	   	       contentType: 'application/json; charset=utf-8',
+  		       dataType : 'json',
+  		       cache: false,
+  	   	       success: function(data, statusText, jqXHR) {
+  	   	          messagesModel.conversation = data;
+  	   	          messagesModel.change_state('conversation_retrieved_success');     	
+  	   	       },
+  	   	       error: function(data, statusText, jqXHR) {
+  	   	       	  messagesModel.change_state('conversation_retrieved_error');
+  	   	       }
+  	   });
+  		
+  	},
+  	
+  	mark_message_as_read : function() { /* Mark the message as read */
+  	
+  	   var current_message = this.currentMessage();
+  	
+  	   if (current_message == null || current_message.read) {
+  	   	 return;
+  	   } 
+  	
+  	   $.ajax({
+  	   	       type : 'PUT',
+  	   	       url  : '/mail/message/'+current_message.id+'/mark_as_read',
+  	   	       contentType : 'application/json; charset=utf-8',
+  	   	       success : function(data, statusText, jqXHR) {
+  	   	       	 messagesModel.messages[messagesModel.message_index].read = true;
+  	   	         messagesModel.change_state('message_marked_as_read_success');     
+  	   	       },
+  	   	       error : function(data, statusText, jqXHR) {
+  	   	       	 messagesModel.change_state('message_marked_as_read_error');
+  	   	       }	 
+  	   });
+  	},
+  	
+  	update_conversation : function(event) { /* Update the conversation (when a message is replied) */
+   	
+  	  new_message = event.source.response_data;
+  	  
+  	  if (this.conversation == null) { // If there is not a conversation
+  	    
+  	    this.conversation = {
+  	      conversation : { id:    this.currentMessage().conversation_id,
+  	                       topic: this.currentMessage().subject },
+  	      messages : [ this.currentMessage() ],	
+  	      total : 1
+  	    };
+  	  	
+  	  }
+  	  
+  	  this.conversation.messages.push(new_message);
+  	  this.conversation.total += 1;
+  	  
+  	  this.update_current_message(new_message);
+  	    	  
+  	  messagesView.state_changed('message_replied');	
+  		
+  	},
+  	
+  	update_current_message : function(message) {
+  		
+  	  this.messages[this.message_index] = message;
+  	  messagesView.state_changed('message_updated');	
+  		
+  	},
+  	
+    format_message_date : function(received_date) { /* Format the received date */
+    
+       if (received_date == null) {
+       	 return '';
+       }
+       
+       var date = Date.parse(received_date);
+       var c_date = Date.parse(received_date).clearTime();    
+       
+       return Date.equals(c_date,Date.today())?date.toString("HH:mm"):date.getFullYear()==c_date.getFullYear()?date.toString("d MMM"):date.toString("d-MM-yy")	
+    	
+    },
+    
+    format_message_date_time : function(received_date) { /* format the received date-time */
+
+       if (received_date == null) {
+       	 return '';
+       }
+    
+       var date = Date.parse(received_date);
+       var c_date = Date.parse(received_date).clearTime();    
+       
+       return Date.equals(c_date,Date.today())?date.toString("HH:mm"):date.getFullYear()==c_date.getFullYear()?date.toString("d MMM, HH:mm"):date.toString("d-MM-yy, HH:mm")	
+    
+    },
+    
+    format_sender_url : function(sender) { /* Format the sender */
+    
+      <% if options.mail_include_sender_url %> 
+        var sender_url = "<%= options.mail_sender_url%>".replace('{sender}', sender);
+        return '<a href="' + sender_url + '" target="_blank">' + sender + '</a>';
+      <%else%> 
+        return sender; 
+      <%end%>
+    
+    },
+  
+    format_message : function(message) { /* Format the message */
+    
+      return message.replace(/\n/gi,'<br/>'); /* .replace(/\s/gi,'&nbsp;');    */
+    
+    }
+  	
+  };
+  
+  messagesController = { /* The controller */
+  	
+  	showMessageDetail : function(the_index) { /* Show the message detail */
+  	    	  	  
+  	  // updates the message_index  	  
+  	  messagesModel.setMessageIndex(the_index);  	  	  
+  	   
+      // shows the message
+      messagesView.show_message_detail();  	    	  	  
+  	     	  
+   	  $('#messages_container').hide();
+   	  $('#message_detail').show();
+  	  		
+  	},
+  	
+  	showMessages : function() { /* Show the messages list */
+  		
+  	  $('#message_detail').hide();	
+   	  $('#messages_container').show();
+  	
+  	  messagesModel.navigator.back_to_page();
+  	},
+  	  	
+  	nextMessage : function() { /* load the next message */
+  	
+  	  messagesModel.nextMessage(); 	  
+  	
+  	},
+  	
+  	previousMessage : function() { /* load the previous message */
+  	
+  	  messagesModel.previousMessage(); 	  	  	  
+  	  
+  	},
+  	  	
+  	previousPage : function() { /* load the previous page */
+  	
+  	  messagesModel.previousPage();
+  	  	
+  	},
+  	
+  	nextPage : function() { /* load the next page */
+  	  
+  	  messagesModel.nextPage();
+  	
+  	},
+  	
+  	reload : function() { /* Reload (updates) the messages */
+  	  
+  	  messagesModel.reload();
+  	  
+  	}
+  	
+  };
+  
+  messagesView = { /* The view */
+  
+    tmpl_message_row : null, /* Message detail template */
+    tmpl_message_detail : null, /* Message detail template */
+  	tmpl_conversation_item : null, /* Conversation item template */
+  	
+  	init: function() {
+  	    
+  	    // Configure the events  	            
+  		$('#message_list_button').bind('click', function() {
+  	       messagesController.showMessages();
+  		});
+  		
+  		$('#previous_message_button').bind('click', function() {
+  		   messagesController.previousMessage();
+  		});
+  		
+  		$('#next_message_button').bind('click', function() {
+  			messagesController.nextMessage();
+  		});
+  		
+  		$('#reload_button').bind('click', function() {
+  			messagesController.reload();
+  		});
+  		
+  		$('#previous_page_button').bind('click', function() {
+  			messagesController.previousPage();
+  		});
+  		
+  		$('#next_page_button').bind('click', function() {
+  			messagesController.nextPage();
+  		});
+  		
+  		
+  		 		
+  	},
+  	
+  	state_changed : function(state) {
+  		
+  		switch (state) {
+  			
+  		  case 'messages_received':
+            this.load_message_rows();  	  		  
+  		    break;
+  		      		    
+  		  case 'conversation_retrieved' :
+  		    this.load_conversation();
+  		    break;
+  		    
+  		  case 'message_marked_as_read' :
+  		    this.mark_message_as_read(); 		  
+  		    break;
+  		    
+  		  case 'message_replied' :
+  		    this.update_conversation();
+  		    break;
+  		    
+  		  case 'message_updated' :
+  		    this.update_message_row();
+  		    break;
+  		   
+  		  case 'error_receiving_messages':
+  		  
+  		    break;  		    
+  		    
+  		  case 'error_retrieving_conversation':
+  		  
+  		    break;
+  		    
+  		  case 'error_marking_message_as_read':
+  		  
+  		    break;
+  			
+  		}
+  		
+  	},
+  	
+  	configure_reply_form : function() {
+  	
+  	  replyMessageView.init();
+  	  		
+  	},
+  	
+  	load_message_rows : function () { /* rows, render */
+  		
+  	   if (messagesModel.messages.length == 0) {	
+  		 $('#messages_list').hide();
+  		 $('#messages_info').show();
+  		 return;
+  	   }
+  			
+   	   if (this.tmpl_message_row == null) // row render 
+   	   {
+  	     this.tmpl_message_row = tmpl('message_row_script');
+  	   }
+  	    	        
+  	   var tableBody = document.getElementById('messages_tbody');  	          	        
+  	   var messageHtml = '';  	        
+  	   for (var index in messagesModel.messages) {  	        
+  	       messageHtml += this.tmpl_message_row({'message':messagesModel.messages[index],'index':index});	     	         	
+  	   }
+  	    
+  	   /*tableBody.insertAdjacentHTML('BeforeEnd', messageHtml);*/
+  	   $('#messages_tbody').html(messageHtml);    
+  		
+  	   $('.table-row').bind('click', function() {  			  			
+  			messagesController.showMessageDetail( new Number($(this).attr('rel')) );  			
+  	   });
+  	   
+  	   if ($('#messages_list').is(':hidden')) {  	   
+  	     $('#messages_list').show();
+  	     $('#messages_info').hide();
+  	   }
+  		
+  	   $('#messages_summary_page').html( messagesModel.navigator.summary_page_message() );
+  		  		
+  	},
+  	
+  	show_message_detail : function () { /* Shows the message detail */
+  		
+  	  if (this.tmpl_message_detail == null)
+  	  {
+  	    this.tmpl_message_detail = tmpl('message_detail_script');	
+  	  }	
+  	  
+  	  // Prepare the message	
+  	  var message_detail = document.getElementById('message_detail_message');  	  
+  	  message_detail.innerHTML = this.tmpl_message_detail(messagesModel.currentMessage()); 	  
+  	  
+  	  // Configure the reply form
+  	  messagesView.configure_reply_form();  	  
+
+      // Update the message summary
+  	  $('#messages_summary_element').html( messagesModel.navigator.summary_element_message() );
+
+      // Load the conversation
+	  messagesModel.retrieve_conversation(); // Order to retrieve the conversation
+
+  	},
+  	
+  	load_conversation : function () { /* Show the full conversation */
+  	
+  	  var conversation = messagesModel.conversation;
+  		
+  	  if (conversation == null || conversation.messages == null)
+  	  {
+  	    return;	
+  	  }	
+  		
+  	  if (this.tmpl_conversation_item == null) {
+  	  	this.tmpl_conversation_item = tmpl('conversation_item_script');	
+  	  }	
+  	  
+  	  var conversation_element = document.getElementById('message_detail_conversation_messages');
+  	  var messageHtml = '';
+  	  for (var index in conversation.messages){
+  	    messageHtml += this.tmpl_conversation_item(conversation.messages[index]);	
+  	  }
+  	  conversation_element.innerHTML = messageHtml;
+  	  
+  	},
+  	
+  	update_conversation : function () { /* Update the conversation with the last sent message */
+  	  	  
+  	  if (this.tmpl_conversation_item == null) {
+  	  	this.tmpl_conversation_item = tmpl('conversation_item_script');	
+  	  }	
+  	  
+  	  var conversation_element = document.getElementById('message_detail_conversation_messages');
+  	    	  
+  	  // Adds the last conversation message
+  	  conversation_element.innerHTML += this.tmpl_conversation_item(messagesModel.conversation.messages[messagesModel.conversation.messages.length-1]);
+  	    	  	
+  	},
+  	
+   	update_message_row : function() { /* Update a message row */
+  	
+  	
+   	  if (this.tmpl_message_row == null) // row render 
+   	  {
+  	     this.tmpl_message_row = tmpl('message_row_script');
+  	  }  	
+  	  
+  	  var messageHtml = this.tmpl_message_row({'message':messagesModel.currentMessage(), 'index':messagesModel.message_index});
+  	  
+  	  /*document.getElementById('message_row_'+messagesModel.message_index).innerHTML = messageHtml;*/
+  	  $('#message_row_'+messagesModel.message_index).html(messageHtml);
+  	  
+  	
+  	}, 	
+  	
+  	mark_message_as_read : function () { /* Mark a row as read */
+  			
+  	   $('#message_row_' + messagesModel.message_index + ' td').removeClass('highlighted-row');	
+  		
+  	}
+  	
+  };
+ 
+  messagesMVC = { /* Messages MVC */
+  
+    model : messagesModel,
+    view  : messagesView,
+    controller : messagesController,
+      
+    init : function() {
+
+     messagesView.init();
+     messagesModel.init();
+     	
+    }
+  	
+  }
+  
+  messagesMVC.init();
+    
+  $(window).bind('hashchange', function(event) {
+  
+     messagesModel.navigator.navigate();
+      
+  });
+  
+   
+</script>

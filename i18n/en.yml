@@ -1,3 +1,33 @@
+message_list:
+  from: From
+  subject: Subject
+  date: Date
+  no_messages: No tienes mensajes
+message:
+  from: from
+  subject: subject
+  come_back: Messages
+  show_conversation: Show conversation
+  hide_conversation: Hide conversation
+  message_replied: The message has been replied
+  user: user
+  reload: Reload
+reply_message_form:
+  reply: Write here to reply the message
+  reply_button: Reply
+message_form:
+  to: To
+  subject: Subject
+  message: Message
+  send_button: Send
+  close_button: Close
+  validation:
+    subject_required: The subject is required
+    message_required: The message is required
+  process_ok_title: Message sent
+  process_ok_description: The message has been sent successfully
+  process_error_title: Error sending message
+  process_error_description: An error occured sending the message  
 social_menu:
   messages: Messages
 social_mail_action:

@@ -1,3 +1,33 @@
+message_list:
+  from: De
+  subject: Assumpte
+  date: Data
+  no_messages: No hi han missatges
+message:
+  from: de
+  subject: assumpte
+  come_back: Missatges
+  show_conversation: Veure conversa
+  hide_conversation: Ocultar conversa
+  message_replied : El missatge s\'ha respost
+  user: usuari
+  reload: Recarregar
+reply_message_form:
+  reply: Escrigui aqui per respondre el missatge
+  reply_button: Respondre
+message_form:
+  to: Per
+  subject: Assumpte
+  message: Missatge
+  send_button: Enviar
+  close_button: Tancar
+  validation:
+    subject_required: L\'assumpte és obligatori
+    message_required: El missatge és obligatori
+  process_ok_title: Missatge enviat
+  process_ok_description: El missatge s\'ha enviat al destinatari
+  process_error_title: Error enviant el missatge
+  process_error_description: S\'ha produit un error a l'enviar el missatge
 social_menu:
   messages: Missatges
 social_mail_action:

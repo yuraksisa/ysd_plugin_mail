@@ -1,0 +1,297 @@
+<div id="message_form_container" style="display:none">
+  <form name="message_form" id="message_form" action="/mail/message">
+    <div class="formrow">
+      <label for="receiver[address]" class="fieldtitle"><%= t.message_form.to %></label>
+      <input type="text" id="receiver[address]" name="receiver[address]" maxlength="20" class="fieldcontrol"/>
+      <input type="hidden" id="receiver[name]" name="receiver[name]"/>
+    </div>
+    <div class="formrow">
+      <label for="subject" class="fieldtitle"><%= t.message_form.subject %></label>
+      <input type="text" id="subject" name="subject" maxlength="50" class="fieldcontrol"/>
+    </div>
+    <div class="formrow">
+      <label for="message" class="fieldtitle"><%= t.message_form.message %></label>
+      <textarea id="message" name="message" rows="5" class="fieldcontrol"></textarea>
+    </div>
+    <p style="text-align:right"> <span id="message_length"></span> <%= t.available_chars %> </p>
+    <div class="formrow formrow-botonera">
+       <input type="submit" id="send" name="send" value="<%= t.message_form.send_button %>"/>   
+       <input type="button" id="close" name="close" value="<%= t.message_form.close_button %>"/>
+    </div>
+    <input type="hidden" id="sender[address]" name="sender[address]"/>
+    <input type="hidden" id="sender[name]" name="sender[name]"/>
+  </form>
+</div>
+
+<script type="text/javascript">
+
+  messageModel = {
+  	
+  	state : 'initial',
+  	response_data : null,
+  	response_status : null,
+  	sender : null,
+  	receiver : null,
+  	subject : null,
+  	
+  	change_state : function(action) {
+  		
+  		switch (action) {
+  			
+  		  case 'message_send_success' :
+  		  
+  		    this.state = 'process_ok';
+  		    break;
+  		    
+  		  case 'message_send_error' :
+  		    this.state = 'process_error';
+  		    break;	
+  			
+  		}
+  		
+  		messageView.state_changed(this.state);
+  		
+  	},
+  	
+  	sendMessage : function(message) {
+  		  		
+  		delete message['send'];
+  		delete message['close'];
+  		
+  		var json_request = encodeURIComponent(JSON.stringify(message));
+  		
+  		$.ajax( {
+  			type   : 'POST',
+  			url : document.forms['message_form'].action,
+  			data   : json_request,
+  			data_type : 'application/json; charset=utf-8',  			
+  			content_type : 'json',
+  			success : function(data, textStatus, jqXHR) {
+  			  messageModel.response_data = data;
+  			  messageModel.change_state('message_send_success');	
+  			},
+  			error: function(data, textStatus, jqXHR) {
+  			  messageModel.response_status = textStatus;
+  			  messageModel.change_state('message_send_error');
+  			}
+  		});
+  		
+  	},
+  	
+  	addReceiver : function(receiver) { /* Add a receiver to the message */	
+  	  this.receiver = receiver;  	  
+  	  messageView.receiverAdded();
+  	},
+  	
+  	setSender : function(sender) { /* Sets the message sender */
+  
+      this.sender = sender;
+      messageView.senderSet(); 
+      	
+  	},
+  	
+  	setSubject : function(subject) { /* Sets the message subject */
+  		
+  	  this.subject = subject;
+  	  messageView.subjectSet();	
+  	  
+  	}
+  	
+  };
+  
+  messageController = {
+  	
+  	events : new YSD.EventTarget(),
+  	
+  	sendMessage : function(message) { /* Send message action */
+  		
+  	  messageModel.sendMessage(message);
+  	  	
+  	},
+  	
+  	processDone : function() {
+  	
+  	  // Reset the form
+  	  document.forms['message_form'].reset();
+  	   	 		
+  	  // fire the done event
+  	  // this.events.fireEvent('done'); 	 		
+  	  
+  	  messageView.closeForm();
+  	   	 		
+  	},  		
+
+    cancel : function() { /* Cancel button click */
+    
+      // Reset the form
+      document.forms['message_form'].reset();
+      
+      // fire the cancel event
+      // this.events.fireEvent('cancel');
+      
+      messageView.closeForm();
+    	
+    }
+    
+  	
+  };
+  
+  messageView = { 
+  	
+  	init : function() { /* Initialization */
+  		
+  	  $('#receiver\\[address\\]').attr('readonly',true); /* In this moment we don't let change the sender */	
+  		
+  	  // configure the validations
+  	  $('#message_form').validate( {
+  	    
+  	     debug : true,
+  	     
+  	     submitHandler : function(form) {
+  	     	
+  	     	messageController.sendMessage( $(form).formParams(false) );
+  	     	
+  	     },
+  	     
+  	     rules : {
+  	     
+  	       'subject' : {
+  	       	  required : true
+  	       },
+  	       
+  	       'message' : {
+  	       	  required : true
+  	       }
+  	     	
+  	     },
+  	     
+  	     messages : {
+  	     	
+  	       'subject' : {
+  	       	 required : "<%= t.message_form.validation.subject_required %>"
+  	       },	
+  	     	
+  	       'message' : {
+  	       	 required : "<%= t.message_form.validation.message_required %>"
+  	       }	
+  	     	
+  	     	
+  	     }
+  	  
+  	   }
+  	  );
+  	  
+  	  // configure the message max size
+  	  
+  	  YsdForms.limit_text_area_content_size (document.getElementById('message'),
+  	                                         1024,
+  	                                         function (content_remain) {
+  	                                         	document.getElementById('message_length').innerHTML = '<strong>' + content_remain + '</strong>';
+  	                                         });	  	  
+  	  
+  		
+  	  // configure the close button
+  	  $('#close').bind('click', function(event) { messageController.cancel(); }); 	
+  		
+  	},
+  	
+  	state_changed : function (state) { /* State changed */
+  	  
+  	  switch (state) {
+  	  	
+  	    case 'process_ok':
+  	    
+  	      $('<div title="<%= t.message_form.process_ok_title %>"><%= t.message_form.process_ok_description %></div>').dialog({ height: 160, modal: true, 
+  	         buttons : {
+  	           
+  	           Ok : function() {
+  	           	 $(this).dialog("close");
+  	           }
+  	         	
+  	         },
+  	         
+  	         close : function(event, ui){ /* When dialog is closed */
+
+  	           messageController.processDone();
+  	         	
+  	         }	
+
+  	          });
+  	    
+  	      break;
+  	      
+  	    case 'process_error':
+  	    
+  	      $('<div title="<%= t.message_form.process_error_title %>"><%= t.message_form.process_error_description %></div>').dialog({height: 160, modal: true,
+  	        buttons : {
+  	          Ok : function() {
+  	          	$(this).dialog("close");
+  	          }
+  	        }
+  	        	});
+  	    
+  	      break;
+  	  	
+  	  }
+  		
+  		
+  	},
+  	
+  	senderSet : function() {
+  	
+  	   var the_form = document.getElementById('message_form');    
+       
+   	   the_form['sender[address]'].value = messageModel.sender.address;
+  	   the_form['sender[name]'].value = messageModel.sender.name;         
+  		
+  	},
+  	
+  	receiverAdded : function() {
+ 
+  	  var the_form = document.getElementById('message_form');
+  	  
+  	  the_form['receiver[address]'].value = messageModel.receiver.address;
+  	  the_form['receiver[name]'].value = messageModel.receiver.name; 
+  		
+  	},
+  	
+  	subjectSet : function() {
+  		
+  	  var the_form = document.getElementById('message_form');
+  		
+  	  the_form['subject'].value = messageModel.subject;  		
+  		
+  	},
+  	
+  	showForm : function() {
+  		
+  	  var form_container = document.getElementById('message_form_container');	
+  	  var the_form = document.getElementById('message_form');
+  	  
+  	  YSD.showElement(form_container, true);	
+  	  
+  	  if (messageModel.subject != null && messageModel.subject.length > 0)
+  	  {
+  	    the_form['message'].focus();
+  	  }
+  	  else
+  	  {
+  	  	the_form['subject'].focus();
+  	  }
+  	  
+  	},
+  	
+  	closeForm : function() {
+  	
+  	  var form_container = document.getElementById('message_form_container');
+  	  
+  	  YSD.hideElement(form_container);
+  		
+  	}
+  	
+  	
+  };
+  
+  messageView.init();
+
+</script>  

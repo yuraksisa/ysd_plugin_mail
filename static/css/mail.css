@@ -1,0 +1,214 @@
+/* -------------- New message ------------ */
+
+#message_form {
+ background: white;	
+ padding: 10px;
+ border: 1px solid black;
+}
+
+#message_form_container {
+ padding: 5px;
+}
+
+/* -------------- Reply ------------------- */
+
+.reply-button {
+  background: black;
+  color: white;	
+}
+
+#reply_message_form {
+  width: 100%;	
+}
+#reply_message_form div textarea{
+ float: left;	
+ width: 99%;
+}
+
+/* ---------- Message Reader -------------- */
+
+#messages_container {
+ background: white;
+ padding: 15px;
+}
+
+#message_detail {
+ padding: 10px;	
+}
+
+
+#messages_info {
+ text-align: center;	
+}
+
+.messages-summary{
+  display: inline;
+}
+
+.left-bar {
+ float: left;	
+}
+
+.right-bar {
+ float: right;	
+}
+
+/* --------- Messages reader : message list ---------- */
+
+#message_container_button_bar {
+ height: 30px;
+ margin-top: 5px;
+ margin-bottom: 5px;	
+ border-bottom: 1px solid black;
+ padding-top: 5px;
+ padding-bottom: 10px;
+}
+
+#messages_list {
+ width : 100%;
+}
+
+.table {
+  margin: 1px;
+  border-collapse: collapse;	
+  background: white;
+}
+
+.table-tbody {
+  border-top: 1px solid gray;	
+}
+
+.table-row {
+ background: white;	
+// cursor: pointer;
+// cursor: hand;	
+}
+
+.table-header-title {
+  padding: 10px 4px 10px 4px;
+  text-align: left;
+  border-bottom: 1px solid gray;
+  background: #EDEDED;
+  font-weight:normal;
+}
+
+.table-cell {
+  padding: 10px 4px 10px 4px;
+  border-bottom: 1px solid gray;	
+}
+
+.highlighted-row {
+  background: white;
+  font-weight: bold;
+}
+
+.mail-sender {
+ width: 25%;	
+ min-width: 150px;
+ text-align : left;
+}
+
+.mail-subject {
+}
+
+.mail-message {
+ color: gray;	
+}
+
+.mail-received-date {
+ width: 90px;
+ text-align: rigth;
+}
+
+/* --------- Messages reader : message detail ---------- */
+
+#message_detail {	
+ background: white;
+}
+
+#message_detail_button_bar {
+ height: 30px;
+ margin-top: 5px;
+ margin-bottom: 5px;	
+ border-bottom: 1px solid black;
+ padding-top: 5px;
+ padding-bottom: 10px;
+}
+
+#message_detail_header {
+ padding: 5px;	
+ border-bottom: 1px dashed gray;
+}
+
+.message_detail_subject {
+ font-size: large;	
+ padding-bottom: 5px;
+}
+
+.message_detail_sender {
+ font-weight: bold;	
+}
+
+.message_detail_date {
+  float: right;
+}
+
+#message_detail_body {
+ padding: 10px;
+ margin-top: 5px;
+ margin-bottom: 5px;
+ border-bottom: 1px black solid;
+}
+
+#message_detail_conversation {
+ padding-bottom: 5px;
+ border-bottom: 1px black solid;
+}
+
+#message_detail_conversation_buttons {
+ height: 23px;
+ padding-top: 5px;
+}
+
+#message_response {
+ margin-top: 5px;
+}
+
+/* ------- Message reader : conversation --------------- */
+
+.conversation_item {
+
+ padding: 5px;
+ margin-botton: 5px;
+ margin-top:5px;
+ -webkit-border-radius: 5px 5px; /* Safari  */ 
+ -moz-border-radius: 5px 5px; /* Firefox */
+ border-radius: 5px 5px; /* iExplorer 9 */	
+	
+}
+
+.conversation_item_own {
+ background-color : #e6e4c0;	
+}
+
+.conversation_item_other {
+ background-color : #f8dbef;	
+}
+
+.conversation_item_header {
+	
+ border-bottom: 1px dashed gray;
+ 	
+}
+
+.conversation_item_body {
+	
+ padding: 10px;
+ margin-top: 15px;
+ margin-bottom: 15px;	
+	
+}
+
+.conversation_item_footer {
+	
+}

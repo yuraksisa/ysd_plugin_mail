@@ -58,12 +58,9 @@ module Huasi
         </script>
 SCRIPT
 
-        if String.method_defined?(:encode)
-          the_script.encode!('UTF-8')
-        end
-        
-        app.erb the_script
-    
+     template = Tilt['erb'].new { the_script }
+     template.render(app)
+     
     end
     
     

@@ -1,3 +1,6 @@
-require 'sinatra/ysd_plugin_mail_middleware'
+require 'ysd_mail_mds_adapter'
+require 'sinatra/ysd_hp_mail'
+require 'sinatra/ysd_sinatra_mail'
+require 'sinatra/ysd_sinatra_mail_rest_api'
 require 'ysd_plugin_mail_extension'
 require 'ysd_plugin_mail_init'
