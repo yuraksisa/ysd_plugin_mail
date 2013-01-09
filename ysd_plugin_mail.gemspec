@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   
   s.add_runtime_dependency "json"
   
-  s.add_runtime_dependency "ysd_plugin_site"  # Site builder
   s.add_runtime_dependency "ysd_md_mail"      # Mail Model
+  s.add_runtime_dependency "ysd_plugin_cms"  # Site builder
   s.add_runtime_dependency "ysd_core_themes"  # Theming  
   s.add_runtime_dependency "ysd_core_plugins" # Plugins
 

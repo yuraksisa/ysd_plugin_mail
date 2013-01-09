@@ -42,7 +42,7 @@ module Sinatra
       
         # Configure a before filter to initialize the session attribute mailbox with the user name of the connected user 
         # TODO No execute for static resources
-        app.before do
+        app.before /^[^.]*$/ do
    
           if user
 	        session[:mailbox] = user['username'] unless session[:mailbox]   

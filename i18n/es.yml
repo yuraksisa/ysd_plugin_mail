@@ -1,3 +1,5 @@
+message_reader:
+  title: Mensajes
 message_list:
   from: De
   subject: Asunto

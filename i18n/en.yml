@@ -1,3 +1,5 @@
+message_reader:
+  title: Messages
 message_list:
   from: From
   subject: Subject

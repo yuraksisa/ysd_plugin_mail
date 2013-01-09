@@ -1,3 +1,5 @@
+message_reader:
+  title: Missatges
 message_list:
   from: De
   subject: Assumpte

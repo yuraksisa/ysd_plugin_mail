@@ -1,5 +1,5 @@
 <div id="messages_container">
-
+  <h2 class="page-title"><%=t.message_reader.title%></h2>
   <div id="message_container_button_bar">
     <div class="left-bar">
       <div class="form-button" id="reload_button"><%= t.message.reload %></div>
@@ -121,19 +121,20 @@
 
 <script type="text/javascript">
 
+require(['jquery', 'YSDEventTarget', 'YSDForms', 'ysdtemplate', 'YSDjson2', 'jquery.placeholder', 'jquery.ui', 'jquery.validate', 'jquery.formparams', 'datejs'], function($, EventTarget, YSDForms, tmpl){
+
   replyMessageModel = { // Model
   	
   	state : 'initial',
   	response_data : null,
   	response_status : null,
-  	events : new YSD.EventTarget(),
+  	events : new EventTarget(),
   	
   	change_state : function(action) {
   		
   		switch (action) {
   			
   		  case 'message_send_success' :
-  		    
   		    this.state = 'process_ok';
   		    break;
   		    
@@ -180,10 +181,8 @@
   
   replyMessageController = { // Controller
   	
-  	sendMessage : function(message) { /* Send message action */
-  		
+  	sendMessage : function(message) { /* Send message action */	
   	  replyMessageModel.sendMessage(message);
-  	  	
   	},
   	
   	processDone : function() { /* Reply sent */
@@ -234,7 +233,7 @@
       $('input[placeholder],textarea[placeholder]').placeholder();
 
   	  // configure the message max size 	  
-  	  YsdForms.limit_text_area_content_size (document.getElementById('message'),
+  	  YSDForms.limit_text_area_content_size (document.getElementById('message'),
   	                                         1024,
   	                                         function (content_remain) {
   	                                         	document.getElementById('message_length').innerHTML = '<strong>' + content_remain + '</strong>';
@@ -250,23 +249,19 @@
   	  	
   	    case 'process_ok':
   	    
-  	      $('<div title="<%= t.message_form.process_ok_title %>"><%= t.message_form.process_ok_description %></div>').dialog({ height: 160, modal: true, 
+  	      /*
+          $('<div title="<%= t.message_form.process_ok_title %>"><%= t.message_form.process_ok_description %></div>').dialog({ height: 160, modal: true, 
   	         buttons : {
-  	           
   	           Ok : function() {
   	           	 $(this).dialog("close");
-  	           }
-  	         	
+  	            }
   	         },
-  	         
-  	         close : function(event, ui){ /* When dialog is closed */
-
-  	           replyMessageController.processDone();
-  	         	
+    	       close : function(event, ui){
+  	           replyMessageController.processDone();     	
   	         }	
-
-  	          });
-  	    
+  	      });
+          */
+          replyMessageController.processDone();
   	      break;
   	      
   	    case 'process_error':
@@ -286,22 +281,12 @@
   	
   }
 
-
-</script>
-
-
-<script type="text/javascript">
-
   messagesModel = { /* The model */
   	  	
-  	state : 'initial',
-  	
+  	state : 'initial',	
   	messages : [], /* The messages shown */
-  	
-	summary : null, /* The query information */
-  	  	
+  	summary : null, /* The query information */
   	message_index : -1, /* The current message in message detail */
-  	
   	conversation : null, /* It holds the current conversation */
   	
   	navigator : {
@@ -352,52 +337,52 @@
         return (this.page_size * this.page) >=  messagesModel.summary.total;
       },
  	  
- 	  isPageMode : function() {
- 	  	return this.element_id == null;
- 	  },
+ 	    isPageMode : function() {
+ 	    	return this.element_id == null;
+ 	    },
  	  
- 	  isElementMode : function() {
- 	  	return this.element_id != null;
- 	  },
+ 	    isElementMode : function() {
+ 	  	  return this.element_id != null;
+ 	    },
  	  
- 	  back_to_page : function() {
- 	    this.page_loaded();	
- 	  },
+ 	    back_to_page : function() {
+ 	      this.page_loaded();	
+ 	    },
  	  
- 	  page_loaded : function() {
- 	    this.element_id = null;	
- 	    this.update_hash();
- 	  },
+ 	    page_loaded : function() {
+ 	      this.element_id = null;	
+ 	      this.update_hash();
+ 	    },
  	  
- 	  element_loaded : function(id) {
- 	  	this.element_id = id;
- 	  	this.update_hash();
- 	  },
+ 	    element_loaded : function(id) {
+ 	  	  this.element_id = id;
+ 	  	  this.update_hash();
+ 	    },
  	  
- 	  getHash : function() { /* Get the hash */
- 	    return (this.element_id==null)?(this.folder+'/page/'+this.page):(this.folder+'/'+this.element_id); 	
- 	  },
+ 	    getHash : function() { /* Get the hash */
+ 	      return (this.element_id==null)?(this.folder+'/page/'+this.page):(this.folder+'/'+this.element_id); 	
+ 	    },
  	  
- 	  getPageNavigationQuery : function() {
- 	  	return this.folder + '/page/' + this.page;
- 	  },
+ 	    getPageNavigationQuery : function() {
+ 	    	return this.folder + '/page/' + this.page;
+ 	    },
  	  
- 	  summary_page_message : function() { /* Get the summary block message */
- 	  	return Math.max(((messagesModel.navigator.page-1) * messagesModel.navigator.page_size), 1)+ ' - ' + Math.min(((messagesModel.navigator.page) * messagesModel.navigator.page_size), messagesModel.summary.total) + ' de ' + messagesModel.summary.total;
- 	  },
+ 	    summary_page_message : function() { /* Get the summary block message */
+ 	    	return Math.max(((messagesModel.navigator.page-1) * messagesModel.navigator.page_size), 1)+ ' - ' + Math.min(((messagesModel.navigator.page) * messagesModel.navigator.page_size), messagesModel.summary.total) + ' de ' + messagesModel.summary.total;
+ 	    },
  	  
- 	  summary_element_message : function() { /* Get the element block message */
- 	  	return (((messagesModel.navigator.page-1) * messagesModel.navigator.page_size) + messagesModel.message_index + 1) + ' de ' + messagesModel.summary.total;
- 	  },
+ 	    summary_element_message : function() { /* Get the element block message */
+ 	  	  return (((messagesModel.navigator.page-1) * messagesModel.navigator.page_size) + messagesModel.message_index + 1) + ' de ' + messagesModel.summary.total;
+ 	    },
  	  
- 	  update_hash : function() {
+ 	    update_hash : function() {
  	  
- 	    var new_hash = this.getHash();
- 	    if (new_hash != window.location.hash.substring(window.location.hash.indexOf('#')))
- 	    {
- 	  	  window.location.hash = this.getHash();
+ 	      var new_hash = this.getHash();
+ 	      if (new_hash != window.location.hash.substring(window.location.hash.indexOf('#')))
+ 	      {
+ 	  	    window.location.hash = this.getHash();
+ 	      }
  	    }
- 	  }
  	  
   	},
   	
@@ -537,7 +522,7 @@
   		  query = messagesModel.navigator.getHash();	
   		}
   		
-        var request_url = '/mail/messages/' + query
+      var request_url = '/mail/messages/' + query
   		        
   		$.ajax({
   			    type : 'GET',
@@ -566,8 +551,8 @@
   	   	       type: 'GET',
   	   	       url : '/mail/conversation/'+messagesModel.messages[messagesModel.message_index].conversation_id,
   	   	       contentType: 'application/json; charset=utf-8',
-  		       dataType : 'json',
-  		       cache: false,
+  		         dataType : 'json',
+  		         cache: false,
   	   	       success: function(data, statusText, jqXHR) {
   	   	          messagesModel.conversation = data;
   	   	          messagesModel.change_state('conversation_retrieved_success');     	
@@ -638,10 +623,18 @@
        	 return '';
        }
        
-       var date = Date.parse(received_date);
-       var c_date = Date.parse(received_date).clearTime();    
-       
-       return Date.equals(c_date,Date.today())?date.toString("HH:mm"):date.getFullYear()==c_date.getFullYear()?date.toString("d MMM"):date.toString("d-MM-yy")	
+       var date = received_date;
+       var c_date = null;
+
+       if (received_date instanceof String) {
+         date = new Date(received_date);
+         c_date = (new Date(date)).clearTime();
+       }
+       else {
+         c_date =  (new Date(date.getTime())).clearTime();
+       }
+        
+       return Date.equals(c_date,Date.today())?date.toString("HH:mm"):date.getFullYear()==c_date.getFullYear()?date.toString("d MMM"):date.toString("d.MM.yy")	
     	
     },
     
@@ -650,11 +643,19 @@
        if (received_date == null) {
        	 return '';
        }
-    
-       var date = Date.parse(received_date);
-       var c_date = Date.parse(received_date).clearTime();    
+         
+       var date = received_date;
+       var c_date = null;
+
+       if (received_date instanceof String) {
+         date = new Date(received_date);
+         c_date = (new Date(date)).clearTime();
+       }
+       else {
+         c_date =  (new Date(date.getTime())).clearTime();
+       }
        
-       return Date.equals(c_date,Date.today())?date.toString("HH:mm"):date.getFullYear()==c_date.getFullYear()?date.toString("d MMM, HH:mm"):date.toString("d-MM-yy, HH:mm")	
+       return Date.equals(c_date,Date.today())?date.toString("HH:mm"):date.getFullYear()==c_date.getFullYear()?date.toString("d MMM, HH:mm"):date.toString("d.MM.yy, HH:mm")	
     
     },
     
@@ -954,5 +955,6 @@
       
   });
   
-   
+});
+
 </script>

@@ -25,6 +25,8 @@
 
 <script type="text/javascript">
 
+require(['jquery', 'YSDEventTarget', 'YSDForms', 'YSDGui', 'YSDjson2', 'jquery.validate', 'jquery.ui', 'jquery.formparams'], function($, EventTarget, YSDForms, YSDGui){
+
   messageModel = {
   	
   	state : 'initial',
@@ -101,7 +103,7 @@
   
   messageController = {
   	
-  	events : new YSD.EventTarget(),
+  	events : new EventTarget(),
   	
   	sendMessage : function(message) { /* Send message action */
   		
@@ -183,7 +185,7 @@
   	  
   	  // configure the message max size
   	  
-  	  YsdForms.limit_text_area_content_size (document.getElementById('message'),
+  	  YSDForms.limit_text_area_content_size (document.getElementById('message'),
   	                                         1024,
   	                                         function (content_remain) {
   	                                         	document.getElementById('message_length').innerHTML = '<strong>' + content_remain + '</strong>';
@@ -268,7 +270,7 @@
   	  var form_container = document.getElementById('message_form_container');	
   	  var the_form = document.getElementById('message_form');
   	  
-  	  YSD.showElement(form_container, true);	
+  	  YSDGui.showElement(form_container, true);	
   	  
   	  if (messageModel.subject != null && messageModel.subject.length > 0)
   	  {
@@ -285,7 +287,7 @@
   	
   	  var form_container = document.getElementById('message_form_container');
   	  
-  	  YSD.hideElement(form_container);
+  	  YSDGui.hideElement(form_container);
   		
   	}
   	
@@ -293,5 +295,7 @@
   };
   
   messageView.init();
+
+});
 
 </script>  

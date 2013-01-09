@@ -15,7 +15,7 @@ module Huasi
     # Define an action in the profile page -> show a send message button
     # to a different profile
     # --------------------------------------------------------------------
-    def profile_not_owner_action(context={})
+    def profile_not_owner_action(context={}, element)
        
        app = context[:app]
               
@@ -29,7 +29,7 @@ module Huasi
     # Defines necessary code to implement the profile_actions code
     # to a different profile∫
     # --------------------------------------------------------------------    
-    def profile_not_owner_action_extension(context={})
+    def profile_not_owner_action_extension(context={}, element)
      
       app = context[:app]
      
@@ -47,7 +47,7 @@ module Huasi
            	  showMessageForm : function() { /* Show the message form */
              	               	             
   	             messageModel.setSender({'address': "<%=user['username']%>", 'name': "<%=user['full_name']%>"});
-  	             messageModel.addReceiver({'address': "<%=@document['username']%>", 'name': "<%=@document['full_name']%>"});
+  	             messageModel.addReceiver({'address': "<%=element['username']%>", 'name': "<%=element['full_name']%>"});
 
   	             messageView.showForm();
   	               	             
@@ -59,10 +59,18 @@ module Huasi
 SCRIPT
 
      template = Tilt['erb'].new { the_script }
-     template.render(app)
+     template.render(app,{:element => element})
      
     end
     
+    # ========= Resource declaration ============
+    
+    #
+    # It retrieves the images declared in the module
+    #
+    def resource_images(context={})
+      ['/mail/img/Mail.png']
+    end    
     
     # ========= Page Building ============
     
@@ -74,27 +82,10 @@ SCRIPT
     # @return [Array]
     #   An array which contains the css resources used by the module
     #
-    def page_style(context={})
-      ['/mail/css/mail.css']     
-    end
-    
-    #
-    # It gets the scripts used by the module
-    #
-    # @param [Context]
-    #
-    # @return [Array]
-    #   An array which contains the css resources used by the module
-    #
-    def page_script(context={})
-    
-      ['/js/jquery.placeholder.js',
-       '/js/ysd.forms.js',
-       '/js/ysd.events.js',
-       '/js/ysd.back.js']   
-    
-    end            
-      
+    #def page_style(context={})
+    #  ['/mail/css/mail.css']     
+    #end
+          
     # ========= Routes ===================
     
     # routes

@@ -1,5 +1,4 @@
 require 'ysd-plugins' unless defined?Plugins::Plugin
-require 'sinatra/ysd_plugin_mail_middleware'
 require 'ysd_plugin_mail_extension'
 
 Plugins::SinatraAppPlugin.register :mail do
