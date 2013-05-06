@@ -1,47 +1,50 @@
 <div id="messages_container">
   <h2 class="page-title"><%=t.message_reader.title%></h2>
-  <div id="message_container_button_bar">
+  <div id="message_container_button_bar" class="top-navigation-bar navigation-bar">
     <div class="left-bar">
-      <div class="form-button" id="reload_button"><%= t.message.reload %></div>
+      <button class="form-button reload-entities-button entity-management-button" id="reload_button"></button>
     </div>
     <div class="right-bar">
-      <div id="messages_summary_page" class="messages-summary"></div>
-      <div class="form-button" id="previous_page_button">&lt;</div>
-      <div class="form-button" id="next_page_button">&gt;</div>
+      <span id="messages_summary_page" class="elements-summary"></span>
+      <button class="form-button entity-management-button" id="previous_page_button">&lt;</button>
+      <button class="form-button entity-management-button" id="next_page_button">&gt;</button>
     </div>
   </div>
-
-  <table id="messages_list" class="table" style="dislay:none">
-    <thead>
-      <tr>
-        <th class="table-header-title" scope="col"><%= t.message_list.from %></th>
-        <th class="table-header-title" scope="col"><%= t.message_list.subject %></th>
-        <th class="table-header-title" scope="col"><%= t.message_list.date %></th>
-        <th class="table-header-title" scope="col"></th>
-      </tr>
-    </thead>
-    <tbody id="messages_tbody" class="table-tbody">
-    </tbody>
-  </table>
+  <div class="elements-list">
+    <table id="messages_list" class="table" style="dislay:none">
+      <thead>
+        <tr>
+          <th class="table-header-title" scope="col"><%= t.message_list.from %></th>
+          <th class="table-header-title" scope="col"><%= t.message_list.subject %></th>
+          <th class="table-header-title" scope="col"><%= t.message_list.date %></th>
+          <th class="table-header-title" scope="col"></th>
+        </tr>
+      </thead>
+      <tbody id="elements_tbody" class="table-tbody">
+      </tbody>
+    </table>
+  </div>
   <div id="messages_info" style="display:none">
     <%= t.message_list.no_messages %>
   </div>
 </div>
 
 <div id="message_detail" style="display:none">
-
-  <div id="message_detail_button_bar">
+  <h2 class="page-title"><%=t.message_reader.title%></h2>
+  <div id="message_detail_button_bar" class="top-navigation-bar navigation-bar">
     <div class="left-bar">
-      <div class="form-button" id="message_list_button"><%= t.message.come_back %></div>
+      <button class="form-button page-navigation" id="message_list_button"><%= t.entitymanagement.list %></button>
     </div>
     <div class="right-bar">
-      <div id="messages_summary_element" class="messages-summary"></div>
-      <div class="form-button" id="previous_message_button">&lt;</div>
-      <div class="form-button" id="next_message_button">&gt;</div> 
+      <span id="messages_summary_element" class="elements-summary"></span>
+      <button class="form-button entity-management-button" id="previous_message_button">&lt;</button>
+      <button class="form-button entity-management-button" id="next_message_button">&gt;</button> 
     </div>
   </div>
   
-  <div id="message_detail_message">
+  <div>
+    <div id="message_detail_message" class="element-form-detail">
+    </div>
   </div>
  
 </div>
@@ -61,9 +64,9 @@
 
 <script type="text/tmpl" id="message_detail_script">
    
-  <div id="message_detail_header"> 
+  <div id="message_detail_header" class="bottom-margin bottom-separator bigger_text"> 
     <div>
-       <span class="message_detail_subject"><%%= subject %></span>
+       <span class="message_detail_subject bigger_text"><%%= subject %></span>
     </div>  
   </div>
    
@@ -103,16 +106,31 @@
 </script>
 
 <script type="text/tmpl" id="conversation_item_script">
-
-  <div class="conversation_item <%% if (receiver_id == mailbox_id){%>conversation_item_own<%% } else {%> conversation_item_other<%% } %>">
-    <div class="conversation_item_header">
-        <span class="message_detail_sender"><%%= messagesModel.format_sender_url(sender_id)%></span> 
-        <span class="message_detail_date"><%%= messagesModel.format_message_date_time(received_date) %></span>
+  
+  <div class="container_12 conversation_item <%% if (receiver_id == mailbox_id){%>conversation_item_own<%% } else {%> conversation_item_other<%% } %>">
+  
+    <div class="grid_1">
+      <%% if (sender && sender.photo_url_tiny) { %>
+      <img class="rounded profile-img-tiny" src="<%%=sender.photo_url_tiny%>"/>
+      <%% } else { %>
+      <img class="rounded profile-img-tiny" src="<%=settings.profile_default_photo%>"/>
+      <%% } %>
     </div>
-    <div class="conversation_item_body">
-        <%%= messagesModel.format_message(message) %>
-    </div>
-    <div class="conversation_item_footer">
+    
+    <div class="grid_11">
+      <div class="left-space">
+        <div class="conversation_item_header">
+          <span class="message_detail_sender"><%%= messagesModel.format_sender_url(sender)%></span> 
+        </div>
+        <div class="conversation_item_body">
+           <%%= messagesModel.format_message(message) %>
+        </div>
+        <div class="conversation_item_footer">
+          <span class="message_detail_date smaller_text less_contrast_text">
+             <%%= messagesModel.format_message_date_time(received_date) %>
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -661,12 +679,7 @@ require(['jquery', 'YSDEventTarget', 'YSDForms', 'ysdtemplate', 'YSDjson2', 'jqu
     
     format_sender_url : function(sender) { /* Format the sender */
     
-      <% if options.mail_include_sender_url %> 
-        var sender_url = "<%= options.mail_sender_url%>".replace('{sender}', sender);
-        return '<a href="' + sender_url + '" target="_blank">' + sender + '</a>';
-      <%else%> 
-        return sender; 
-      <%end%>
+      return '<a href="/profile/' + sender.address + '" target="_blank">' + (sender.full_name || sender.address) + '</a>';
     
     },
   
@@ -829,14 +842,14 @@ require(['jquery', 'YSDEventTarget', 'YSDForms', 'ysdtemplate', 'YSDjson2', 'jqu
   	     this.tmpl_message_row = tmpl('message_row_script');
   	   }
   	    	        
-  	   var tableBody = document.getElementById('messages_tbody');  	          	        
+  	   var tableBody = document.getElementById('elements_tbody');  	          	        
   	   var messageHtml = '';  	        
   	   for (var index in messagesModel.messages) {  	        
   	       messageHtml += this.tmpl_message_row({'message':messagesModel.messages[index],'index':index});	     	         	
   	   }
   	    
   	   /*tableBody.insertAdjacentHTML('BeforeEnd', messageHtml);*/
-  	   $('#messages_tbody').html(messageHtml);    
+  	   $('#elements_tbody').html(messageHtml);    
   		
   	   $('.table-row').bind('click', function() {  			  			
   			messagesController.showMessageDetail( new Number($(this).attr('rel')) );  			

@@ -54,8 +54,6 @@ module Sinatra
 
             mailbox = params[:mailbox] || session[:mailbox]
 
-            #puts "Retrieving messages. Path : #{path} ** mailbox : #{mailbox} ** #{session[:mailbox]}"
-
             unless params[:conversation_id]
               page_num  = [params[:page_num].to_i, 1].max
               page_size = settings.mail_page_size
