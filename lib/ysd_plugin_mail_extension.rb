@@ -17,11 +17,11 @@ module Huasi
     # --------------------------------------------------------------------
     def profile_not_owner_action(context={}, element)
        
-       app = context[:app]
-              
-       #app.render_profile_action_button(:text => "#{app.t.social_mail_action.send_message}", :link => "javascript:profileActionSendMessage.showMessageForm()" )
-       
-       app.render_profile_action_button(:data_icon => '&#xe073;', :text => "#{app.t.social_mail_action.send_message}", :link => "javascript:profileActionSendMessage.showMessageForm()" )
+       app = context[:app]                     
+       app.render_profile_action_button(:data_icon => '&#xe073;', 
+          :class => 'mini-button', 
+          :text => "#{app.t.social_mail_action.send_message}", 
+          :link => "javascript:profileActionSendMessage.showMessageForm()" )
     end
     
     # --------------------------------------------------------------------

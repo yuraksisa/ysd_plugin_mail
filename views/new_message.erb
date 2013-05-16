@@ -202,24 +202,8 @@ require(['jquery', 'YSDEventTarget', 'YSDForms', 'YSDGui', 'YSDjson2', 'jquery.v
   	  switch (state) {
   	  	
   	    case 'process_ok':
-  	    
-  	      $('<div title="<%= t.message_form.process_ok_title %>"><%= t.message_form.process_ok_description %></div>').dialog({ height: 160, modal: true, 
-  	         buttons : {
-  	           
-  	           Ok : function() {
-  	           	 $(this).dialog("close");
-  	           }
-  	         	
-  	         },
-  	         
-  	         close : function(event, ui){ /* When dialog is closed */
-
-  	           messageController.processDone();
-  	         	
-  	         }	
-
-  	          });
-  	    
+  	      
+  	      messageController.processDone();
   	      break;
   	      
   	    case 'process_error':
