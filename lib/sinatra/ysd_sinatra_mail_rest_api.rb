@@ -17,7 +17,7 @@ module Sinatra
         #
         # Post a new or reply message 
         #
-        app.post "/mail/message" do
+        app.post "/api/mail/message" do
      
           request.body.rewind
           message = JSON.parse(URI.unescape(request.body.read))
@@ -32,7 +32,7 @@ module Sinatra
         #
         # Update a message
         #
-        app.put "/mail/message/:id/mark_as_read" do
+        app.put "/api/mail/message/:id/mark_as_read" do
                         
           message = settings.mail_adapter.update(params[:id], {:read => true})
                 
@@ -43,10 +43,10 @@ module Sinatra
                     
         # Retrieve the messages (JSON) 
         #
-        ["/mail/messages", 
-         "/mail/messages/:mailbox/:folder/page/:page_num", 
-         "/mail/messages/:folder/page/:page_num", 
-         "/mail/messages/:folder/:conversation_id"].each do |path|
+        ["/api/mail/messages", 
+         "/api/mail/messages/:mailbox/:folder/page/:page_num", 
+         "/api/mail/messages/:folder/page/:page_num", 
+         "/api/mail/messages/:folder/:conversation_id"].each do |path|
      
           app.get path do
 
@@ -74,7 +74,7 @@ module Sinatra
 
         # Retrieve conversation messages
         #
-        app.get "/mail/conversation/:id" do
+        app.get "/api/mail/conversation/:id" do
    
           conversation = settings.mail_adapter.get_conversation(params[:id])
       

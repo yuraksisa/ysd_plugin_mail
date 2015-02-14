@@ -1,13 +1,13 @@
 <div id="messages_container">
-  <h2 class="page-title"><%=t.message_reader.title%></h2>
   <div id="message_container_button_bar" class="top-navigation-bar navigation-bar">
     <div class="left-bar">
-      <button class="form-button reload-entities-button entity-management-button" id="reload_button"></button>
+      <h2 class="page-title"><%=t.message_reader.title%></h2>
     </div>
     <div class="right-bar">
-      <span id="messages_summary_page" class="elements-summary"></span>
       <button class="form-button entity-management-button" id="previous_page_button">&lt;</button>
+      <span id="messages_summary_page" class="elements-summary left-margin"></span>
       <button class="form-button entity-management-button" id="next_page_button">&gt;</button>
+      <button class="form-button reload-entities-button entity-management-button left-margin" id="reload_button"><%=t.entitymanagement.reload%></button>
     </div>
   </div>
   <div class="elements-list">
@@ -30,15 +30,15 @@
 </div>
 
 <div id="message_detail" style="display:none">
-  <h2 class="page-title"><%=t.message_reader.title%></h2>
   <div id="message_detail_button_bar" class="top-navigation-bar navigation-bar">
     <div class="left-bar">
-      <button class="form-button page-navigation" id="message_list_button"><%= t.entitymanagement.list %></button>
+      <h2 class="page-title"><%=t.message_reader.title%></h2>
     </div>
     <div class="right-bar">
       <span id="messages_summary_element" class="elements-summary"></span>
-      <button class="form-button entity-management-button" id="previous_message_button">&lt;</button>
+      <button class="form-button entity-management-button left-margin" id="previous_message_button">&lt;</button>
       <button class="form-button entity-management-button" id="next_message_button">&gt;</button> 
+      <button class="form-button page-navigation left-margin" id="message_list_button"><%= t.entitymanagement.list %></button>
     </div>
   </div>
   
@@ -81,7 +81,7 @@
         
   <div id="message_response">
   
-    <form id="reply_message_form" name="reply_message_form" action="/mail/message">
+    <form id="reply_message_form" name="reply_message_form" action="/api/mail/message">
   
       <div>
         <textarea id="message" name="message" rows="5" placeholder="<%= t.reply_message_form.reply%>" class="texteditor"></textarea>
@@ -528,7 +528,7 @@ require(['jquery', 'YSDEventTarget', 'YSDForms', 'ysdtemplate', 'YSDjson2', 'jqu
   		  query = messagesModel.navigator.getHash();	
   		}
   		
-      var request_url = '/mail/messages/' + query
+      var request_url = '/api/mail/messages/' + query
   		        
   		$.ajax({
   			    type : 'GET',
@@ -555,7 +555,7 @@ require(['jquery', 'YSDEventTarget', 'YSDForms', 'ysdtemplate', 'YSDjson2', 'jqu
   		
   	   $.ajax({
   	   	       type: 'GET',
-  	   	       url : '/mail/conversation/'+messagesModel.messages[messagesModel.message_index].conversation_id,
+  	   	       url : '/api/mail/conversation/'+messagesModel.messages[messagesModel.message_index].conversation_id,
   	   	       contentType: 'application/json; charset=utf-8',
   		         dataType : 'json',
   		         cache: false,
@@ -580,7 +580,7 @@ require(['jquery', 'YSDEventTarget', 'YSDForms', 'ysdtemplate', 'YSDjson2', 'jqu
   	
   	   $.ajax({
   	   	       type : 'PUT',
-  	   	       url  : '/mail/message/'+current_message.id+'/mark_as_read',
+  	   	       url  : '/api/mail/message/'+current_message.id+'/mark_as_read',
   	   	       contentType : 'application/json; charset=utf-8',
   	   	       success : function(data, statusText, jqXHR) {
   	   	       	 messagesModel.messages[messagesModel.message_index].read = true;

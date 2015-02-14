@@ -18,7 +18,8 @@ module Huasi
     def profile_not_owner_action(context={}, element)
        
        app = context[:app]                     
-       app.render_profile_action_button(:data_icon => '&#xe073;', 
+       app.render_profile_action_button(
+          :id => 'send_message_button', 
           :class => 'mini-button', 
           :text => "#{app.t.social_mail_action.send_message}", 
           :link => "javascript:profileActionSendMessage.showMessageForm()" )
@@ -104,6 +105,24 @@ SCRIPT
                  :module => :mail}]
     
     end
+
+    #
+    # ---------- Path prefixes to be ignored ----------
+    #
+
+    #
+    # Ignore the following path prefixes in language processor
+    #
+    def ignore_path_prefix_language(context={})
+      %w(/mail/messages-reader)
+    end
+
+    #
+    # Ignore the following path prefix in cms
+    #
+    def ignore_path_prefix_cms(context={})
+      %w(/mail/messages-reader)
+    end    
       
   
   end #MailExtension
